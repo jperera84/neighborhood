@@ -1,0 +1,39 @@
+html, body {
+    font-family: Arial, sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    height: 92vh;
+}
+
+.search-container {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}
+
+ul {
+    padding-left: 8px;
+}
+
+li {
+    list-style: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.searchfield {
+    display: flex;
+    flex-direction: row;
+}
+
+.button-filter {
+    flex-grow: 1
+}
+
+.input-filter {
+    flex-grow: 2;
+}
