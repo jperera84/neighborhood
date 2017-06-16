@@ -16,7 +16,7 @@ var AppViewModel = function () {
     self.textFilter = ko.observable();
     self.filterLocations = ko.computed(function () {
                     return ko.utils.arrayFilter(self.locations(), function (loc) {
-                        if(self.textFilter() == undefined || self.textFilter() == ""){
+                        if(self.textFilter() === undefined || self.textFilter() === ""){
                             for (var i = 0; i < self.markers.length; i++) {
                                 self.markers[i].setMap(map);
                             }
@@ -27,9 +27,7 @@ var AppViewModel = function () {
                     });
                 }, this);
     
-    self.LoadMarkers = function() {
-        //var bounds = new google.maps.LatLngBounds();
-        var largeInfowindow = new google.maps.InfoWindow();
+    self.LoadMarkers = function() {       
         for (var i = 0; i < self.locations().length; i++) {
             var location = self.locations()[i];
             var marker = new google.maps.Marker({
@@ -42,26 +40,25 @@ var AppViewModel = function () {
             marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png'),
 
             self.markers.push(marker);
-
-            marker.addListener('click', function() {
-                self.populateInfoWindow(this, largeInfowindow);
-            });
-            //bounds.extend(app.markers[i].position);
-
-            // Two event listeners - one for mouseover, one for mouseout,
-          // to change the colors back and forth.
-          marker.addListener('mouseover', function() {
-            this.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
-          });
-          marker.addListener('mouseout', function() {
-            this.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
-          });
+            self.ListenersForMarkers(marker);
         }
     };
 
-    self.LoadMarkers();
+    self.ListenersForMarkers = function(marker){
+         var largeInfowindow = new google.maps.InfoWindow();
+         
+         marker.addListener('click', function() {
+                self.populateInfoWindow(this, largeInfowindow);
+        });
+        marker.addListener('mouseover', function() {
+            this.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+        });
+        marker.addListener('mouseout', function() {
+            this.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+        });
+    };
 
-    
+    self.LoadMarkers();
 
     self.populateInfoWindow = function(marker, infowindow) {
         // Check to make sure the infowindow is not already opened on this marker.
@@ -133,7 +130,7 @@ var AppViewModel = function () {
         var marker = self.markers[markIndex - 1];
         bounds.extend(marker.position);
         map.fitBounds(bounds);
-        self.populateInfoWindow(marker, largeInfowindow)
+        self.populateInfoWindow(marker, largeInfowindow);
     };
 
     self.hideMarkers = function() {
@@ -155,6 +152,6 @@ var AppViewModel = function () {
             }
         }
     };
-}
+};
 
 ko.applyBindings(AppViewModel);
