@@ -147,4 +147,7 @@ var AppViewModel = function () {
     };
 };
 
-ko.applyBindings(AppViewModel);
+function applyViewModel() {
+    ko.applyBindings(AppViewModel);
+}
+
