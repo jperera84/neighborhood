@@ -1,8 +1,6 @@
 var AppViewModel = function () {
     var self = this;
-    self.mapElement = document.getElementById('map');
     self.filterText = document.getElementById('search_field');
-    self.filterButton = document.getElementById('btFilter');
     self.mapObj = map;
     self.locations = ko.observableArray([
         {id: 1, title: 'Holywood Theater', location: {lat: 43.098344, lng: -76.145697}},
@@ -15,17 +13,18 @@ var AppViewModel = function () {
     self.markers=[];
     self.textFilter = ko.observable();
     self.filterLocations = ko.computed(function () {
-                    return ko.utils.arrayFilter(self.locations(), function (loc) {
-                        if(self.textFilter() === undefined || self.textFilter() === ""){
-                            for (var i = 0; i < self.markers.length; i++) {
-                                self.markers[i].setMap(map);
-                            }
-                            return true;
-                        }
-                        self.hideMarkers();
-                        return loc.title.toLowerCase().includes(self.textFilter().toLowerCase());
-                    });
-                }, this);
+        return ko.utils.arrayFilter(self.locations(), function (loc) {
+            if(self.textFilter() === undefined || self.textFilter() === ""){
+                for (var i = 0; i < self.markers.length; i++) {
+                    self.markers[i].setMap(map);
+                }
+                return true;
+            }
+            var isIn = loc.title.toLowerCase().includes(self.textFilter().toLowerCase());
+            self.hideMarkers(loc, isIn);
+            return isIn;
+        });
+    }, this);
     
     self.LoadMarkers = function() {       
         for (var i = 0; i < self.locations().length; i++) {
@@ -37,24 +36,21 @@ var AppViewModel = function () {
                 animation: google.maps.Animation.DROP,
                 id: location.id,
             });
-            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png'),
+            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
 
             self.markers.push(marker);
             self.ListenersForMarkers(marker);
         }
     };
+    self.largeInfowindow = new google.maps.InfoWindow();
 
     self.ListenersForMarkers = function(marker){
-         var largeInfowindow = new google.maps.InfoWindow();
-         
-         marker.addListener('click', function() {
-                self.populateInfoWindow(this, largeInfowindow);
-        });
-        marker.addListener('mouseover', function() {
+        marker.addListener('click', function() {
+            self.populateInfoWindow(this, self.largeInfowindow);
+            self.markers.forEach(function(markerAux) {
+                markerAux.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+            }, this);
             this.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
-        });
-        marker.addListener('mouseout', function() {
-            this.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
         });
     };
 
@@ -71,7 +67,6 @@ var AppViewModel = function () {
                     if (results[1]) {
                         address = results[1].formatted_address;
                         infowindow.marker = marker;
-
                         $.ajax({
                             url: 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title,
                             dataType: 'jsonp',
@@ -94,6 +89,7 @@ var AppViewModel = function () {
                                 });
                             },
                             error: function(){
+                                address = 'Cannot determine address at this location.';
                                 infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div>');
                                 infowindow.open(map, marker);
                                 // Make sure the marker property is cleared if the infowindow is closed.
@@ -102,11 +98,15 @@ var AppViewModel = function () {
                                 });
                             }
                         });
-
-
-                        
                     }else{
                         address = 'Cannot determine address at this location.';
+                        infowindow.marker = marker;   
+                        infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div>');
+                        infowindow.open(map, marker);
+                        // Make sure the marker property is cleared if the infowindow is closed.
+                        infowindow.addListener('closeclick',function(){
+                            infowindow.setMarker = null;
+                        });
                     }
                 }else{
                     address = 'Cannot determine address at this location.';
@@ -124,31 +124,24 @@ var AppViewModel = function () {
       };
 
     self.restrictMap = function(markIndex){
-        // This function will loop through the listings and hide them all.
+        // This function will bound the marker clicked and show the infowindow and change the marker color
         var bounds = new google.maps.LatLngBounds();
-        var largeInfowindow = new google.maps.InfoWindow();
         var marker = self.markers[markIndex - 1];
+        marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
         bounds.extend(marker.position);
         map.fitBounds(bounds);
-        self.populateInfoWindow(marker, largeInfowindow);
+        self.populateInfoWindow(marker, self.largeInfowindow);
     };
 
-    self.hideMarkers = function() {
+    self.hideMarkers = function(loc, isIn) {
+        //This function will filter the markers on the map.
         for (var i = 0; i < self.markers.length; i++) {
-            var isIn = true;
-            for (var y = 0; y < self.filterLocations().length; y++) {
-                var el = self.filterLocations()[y];
-                if(el.id !== i + 1 ){
-                    isIn = false;
+            if(self.markers[i].id === loc.id){
+                if(isIn){
+                    self.markers[i].setMap(map);
                 }else{
-                    isIn = true;
-                    break;
+                    self.markers[i].setMap(null);
                 }
-            }
-            if(isIn){
-                self.markers[i].setMap(map);
-            }else{
-                self.markers[i].setMap(null);
             }
         }
     };
