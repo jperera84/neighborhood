@@ -1,6 +1,5 @@
 var AppViewModel = function () {
     var self = this;
-    self.filterText = document.getElementById('search_field');
     self.mapObj = map;
     self.locations = ko.observableArray([
         {id: 1, title: 'Holywood Theater', location: {lat: 43.098344, lng: -76.145697}},
@@ -59,6 +58,7 @@ var AppViewModel = function () {
     self.populateInfoWindow = function(marker, infowindow) {
         // Check to make sure the infowindow is not already opened on this marker.
         if (infowindow.marker != marker) {
+            infowindow.open(map, marker);
             var geocoder = new google.maps.Geocoder();
             var latlng = {lat: parseFloat(marker.position.lat()), lng: parseFloat(marker.position.lng())};
             var address = "";
@@ -82,7 +82,7 @@ var AppViewModel = function () {
                                 }else{
                                     infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div><br><h5>Useful Links</h5><div><ul><li>No useful links were found</i></ul></div>');
                                 }
-                                infowindow.open(map, marker);
+                                //infowindow.open(map, marker);
                                 // Make sure the marker property is cleared if the infowindow is closed.
                                 infowindow.addListener('closeclick',function(){
                                     infowindow.setMarker = null;
@@ -91,7 +91,7 @@ var AppViewModel = function () {
                             error: function(){
                                 address = 'Cannot determine address at this location.';
                                 infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div>');
-                                infowindow.open(map, marker);
+                                //infowindow.open(map, marker);
                                 // Make sure the marker property is cleared if the infowindow is closed.
                                 infowindow.addListener('closeclick',function(){
                                     infowindow.setMarker = null;
@@ -102,7 +102,7 @@ var AppViewModel = function () {
                         address = 'Cannot determine address at this location.';
                         infowindow.marker = marker;   
                         infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div>');
-                        infowindow.open(map, marker);
+                        //infowindow.open(map, marker);
                         // Make sure the marker property is cleared if the infowindow is closed.
                         infowindow.addListener('closeclick',function(){
                             infowindow.setMarker = null;
@@ -112,7 +112,7 @@ var AppViewModel = function () {
                     address = 'Cannot determine address at this location.';
                     infowindow.marker = marker;   
                     infowindow.setContent('<div>' + marker.title + '</div><br><div>' + address + '</div>');
-                    infowindow.open(map, marker);
+                    
                     // Make sure the marker property is cleared if the infowindow is closed.
                     infowindow.addListener('closeclick',function(){
                         infowindow.setMarker = null;
